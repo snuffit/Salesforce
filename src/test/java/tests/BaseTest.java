@@ -2,19 +2,19 @@ package tests;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
-import pages.LoginPage;
-import pages.NewAccountModal;
-import pages.NewContactModal;
+import pages.*;
+import steps.AccountStep;
+import steps.ContactStep;
+import steps.LoginStep;
 import utils.TestListener;
 
 import java.time.Duration;
 
 import static utils.AllureUtils.takeScreenshot;
+import static utils.DriverFactory.*;
 
 @Listeners(TestListener.class)
 public class BaseTest {
@@ -27,31 +27,39 @@ public class BaseTest {
     LoginPage loginPage;
     NewAccountModal newAccountModal;
     NewContactModal newContactModal;
+    LoginPageFactory loginPageFactory;
+    HomePage homePage;
+    LoginStep loginStep;
+    AccountStep accountStep;
+    NotificationPopUp notificationPopUp;
+    ContactStep contactStep;
 
     @Parameters({"browser"})
     @BeforeMethod(alwaysRun = true, description = "Открытие браузера")
     public void setup(@Optional("chrome") String browser) {
-        if (browser.equals("chrome")) {
-            driver = new ChromeDriver();
-        } else if (browser.equals("firefox")) {
-            driver = new FirefoxDriver();
-        }
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-        driver.manage().window().maximize();
+        createDriver(browser);
+        getDriver().manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+        getDriver().manage().window().maximize();
         softAssert = new SoftAssert();
         dotenv = Dotenv.load();
         user = dotenv.get("USER");
         password = dotenv.get("PASSWORD");
-        loginPage = new LoginPage(driver);
-        newAccountModal = new NewAccountModal(driver);
-        newContactModal = new NewContactModal(driver);
+        loginPage = new LoginPage(getDriver());
+        newAccountModal = new NewAccountModal(getDriver());
+        newContactModal = new NewContactModal(getDriver());
+        loginPageFactory = new LoginPageFactory(getDriver());
+        homePage = new HomePage(getDriver());
+        loginStep = new LoginStep(getDriver());
+        accountStep = new AccountStep(getDriver());
+        notificationPopUp = new NotificationPopUp(getDriver());
+        contactStep = new ContactStep(getDriver());
     }
 
     @AfterMethod(alwaysRun = true, description = "Закрытие браузера")
     public void tearDown(ITestResult result) {
         if (ITestResult.FAILURE == result.getStatus()) {
-            takeScreenshot(driver);
+            takeScreenshot(getDriver());
         }
-        driver.quit();
+        quitDriver();
     }
 }

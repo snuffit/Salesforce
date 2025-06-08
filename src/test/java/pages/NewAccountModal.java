@@ -1,9 +1,9 @@
 package pages;
 
+import dto.Account;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import wrappers.Checkbox;
 import wrappers.Input;
 import wrappers.Picklist;
@@ -11,7 +11,7 @@ import wrappers.TextArea;
 
 public class NewAccountModal extends BasePage {
 
-    private final String URI = "https://tms9-dev-ed.develop.lightning.force.com/lightning/o/Account/new",
+    private final String URI = BASE_URL + "lightning.force.com/lightning/o/Account/new",
             TITLE_PATH = "//span[text()='%s']";
     private final By SAVE_BUTTON = By.xpath("//*[@name='SaveEdit']"),
             DUPLICATE_ERROR = By.xpath("//*[text()='Similar Records Exist']");
@@ -20,27 +20,29 @@ public class NewAccountModal extends BasePage {
         super(driver);
     }
 
-    public void open() {
-        wait.until(driver -> {
-            return ((JavascriptExecutor) driver)
-                    .executeScript("return document.readyState").equals("complete");
-        });
+    @Override
+    public NewAccountModal open() {
+        waitForPageLoaded();
         driver.get(URI);
+        return this;
     }
 
-    public void createAccount(String name, String rating, String phone, String fax, String accountNumber,
-                              String website, String accountSite, String tickerSymbol, String type,
-                              String ownership, String industry, boolean isVipClient, boolean isTeachMeSkills,
-                              String billingStreet, String billingCity, String billingZip,
-                              String billigCountry, String description) {
-        fillAccountInformation(name, rating, phone, fax, accountNumber, website, accountSite, tickerSymbol, type,
-                ownership, industry, isVipClient, isTeachMeSkills);
-        fillAddressInformation(billingStreet, billingCity, billingZip, billigCountry);
-        fillDescriptionInformation(description);
+    @Override
+    public NewAccountModal isPageOpend() {
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(SAVE_BUTTON)));
+        return this;
+    }
+
+    public NewAccountModal createAccount(Account account) {
+        fillAccountInformation(account.getName(), account.getRating(), account.getPhone(), account.getFax(),
+                account.getAccountNumber(), account.getWebsite(), account.getAccountSite(), account.getTickerSymbol(), account.getType(),
+                account.getOwnership(), account.getIndustry(), account.isVipClient(), account.isTeachMeSkills());
+        fillAddressInformation(account.getBillingStreet(), account.getBillingCity(), account.getBillingZip(), account.getBilligCountry());
+        fillDescriptionInformation(account.getDescription());
+        return this;
     }
 
     public void clickSaveButton() {
-        duplicateErrorWait();
         driver.findElement(SAVE_BUTTON).click();
     }
 
@@ -78,12 +80,5 @@ public class NewAccountModal extends BasePage {
     private void fillDescriptionInformation(String description) {
         actions.scrollToElement(new TextArea(driver, "Description").get()).perform();
         new TextArea(driver, "Description").write(description);
-    }
-
-    private void duplicateErrorWait() {
-        try {
-            driver.findElement(DUPLICATE_ERROR);
-        } catch (NoSuchElementException e) {
-        }
     }
 }

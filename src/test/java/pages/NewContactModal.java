@@ -1,15 +1,15 @@
 package pages;
 
+import dto.Contact;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import wrappers.Input;
 import wrappers.Picklist;
 
 public class NewContactModal extends BasePage {
 
-    private final String URI = "https://tms9-dev-ed.develop.lightning.force.com/lightning/o/Contact/new",
+    private final String URI = BASE_URL + "lightning.force.com/lightning/o/Contact/new",
             TITLE_PATH = "//span[text()='%s']";
     private final By SAVE_BUTTON = By.xpath("//*[@name='SaveEdit']"),
             DUPLICATE_ERROR = By.xpath("//*[text()='Similar Records Exist']");
@@ -18,23 +18,28 @@ public class NewContactModal extends BasePage {
         super(driver);
     }
 
-    public void open() {
-        wait.until(driver -> {
-            return ((JavascriptExecutor) driver)
-                    .executeScript("return document.readyState").equals("complete");
-        });
+    @Override
+    public NewContactModal open() {
+        waitForPageLoaded();
         driver.get(URI);
+        return this;
+    }
+
+    @Override
+    public NewContactModal isPageOpend() {
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(SAVE_BUTTON)));
+        return this;
     }
 
     public void clickSaveButton() {
-        duplicateErrorWait();
         driver.findElement(SAVE_BUTTON).click();
     }
 
-    public void createContact(String phone, String homePhone, String salutation, String lastName, String department,
-                              String assistant, String leadSource, String languages, String level) {
-        fillContactInformation(phone, homePhone, salutation, lastName, department, assistant, leadSource);
-        fillAdditionalInformation(languages, level);
+    public NewContactModal createContact(Contact contact) {
+        fillContactInformation(contact.getPhone(), contact.getHomePhone(), contact.getSalutation(),
+                contact.getLastName(), contact.getDepartment(), contact.getAssistant(), contact.getLeadSource());
+        fillAdditionalInformation(contact.getLanguages(), contact.getLevel());
+        return this;
     }
 
     private void fillContactInformation(
@@ -56,12 +61,5 @@ public class NewContactModal extends BasePage {
                 driver.findElement(By.xpath(String.format(TITLE_PATH, "Additional Information")))).perform();
         new Input(driver, "Languages").write(languages);
         new Picklist(driver, "Level").select(level);
-    }
-
-    private void duplicateErrorWait() {
-        try {
-            driver.findElement(DUPLICATE_ERROR);
-        } catch (NoSuchElementException e) {
-        }
     }
 }

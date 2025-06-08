@@ -17,7 +17,6 @@ public class Picklist {
         this.driver = driver;
         this.label = label;
         this.element = driver.findElement(By.xpath(String.format(selectPattern + "button", label)));
-
         this.actions = new Actions(driver);
     }
 
