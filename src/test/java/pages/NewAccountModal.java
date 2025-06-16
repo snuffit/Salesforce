@@ -1,14 +1,18 @@
 package pages;
 
 import dto.Account;
+import lombok.extern.log4j.Log4j2;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.testng.Assert;
 import wrappers.Checkbox;
 import wrappers.Input;
 import wrappers.Picklist;
 import wrappers.TextArea;
 
+@Log4j2
 public class NewAccountModal extends BasePage {
 
     private final String URI = BASE_URL + "lightning.force.com/lightning/o/Account/new",
@@ -22,6 +26,7 @@ public class NewAccountModal extends BasePage {
 
     @Override
     public NewAccountModal open() {
+        log.info("Open New Account Modal URI: '{}'", URI);
         waitForPageLoaded();
         driver.get(URI);
         return this;
@@ -29,11 +34,18 @@ public class NewAccountModal extends BasePage {
 
     @Override
     public NewAccountModal isPageOpend() {
-        wait.until(ExpectedConditions.visibilityOf(driver.findElement(SAVE_BUTTON)));
+        try {
+            wait.until(ExpectedConditions.visibilityOf(driver.findElement(SAVE_BUTTON)));
+        } catch (TimeoutException e) {
+            log.error(e.getMessage());
+            Assert.fail();
+        }
+        log.info("Page is loaded");
         return this;
     }
 
     public NewAccountModal createAccount(Account account) {
+        log.info("Create Account");
         fillAccountInformation(account.getName(), account.getRating(), account.getPhone(), account.getFax(),
                 account.getAccountNumber(), account.getWebsite(), account.getAccountSite(), account.getTickerSymbol(), account.getType(),
                 account.getOwnership(), account.getIndustry(), account.isVipClient(), account.isTeachMeSkills());
@@ -43,6 +55,7 @@ public class NewAccountModal extends BasePage {
     }
 
     public void clickSaveButton() {
+        log.info("Click save button");
         driver.findElement(SAVE_BUTTON).click();
     }
 
